@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.annotations.Api;
 import pacApp.pacData.CarRepository;
+import pacApp.pacData.RentalRepository;
+import pacApp.pacData.UserRepository;
 import pacApp.pacException.CarNotFoundException;
 import pacApp.pacLogic.Constants;
 import pacApp.pacModel.Car;
@@ -57,18 +59,7 @@ public class CarController extends BaseRestController {
 
         User user = optUser.get();
 
-        List<Car> carList = this.repository.findAll();
-
-        List<Car> availableCarList = new Vector<Car>();
-
-        for (Car car : carList) {
-            boolean isCarAvailable = this.checkForCarBooking(car);
-
-            if (isCarAvailable) {
-                availableCarList.add(car);
-            }
-        }
-
+        List<Car> availableCarList = this.getAvailableCars();
         List<CarInfo> carInfoList = this.convertCarsToCarInfos(availableCarList);
 
         Currency userDefaultCurrency = user.getDefaultCurrency();
@@ -237,16 +228,31 @@ public class CarController extends BaseRestController {
     }
 
     protected boolean checkForCarBooking(Car car) {
-        List<Rental> rentalsForCar = this.rentalRepository.findByCar(car);
+        //List<Rental> rentalsForCar = this.rentalRepository.findByCar(car);
         boolean isCarAvailable = true;
-
+        /*
         for (Rental rental : rentalsForCar) {
             if (rental.getEndDate() == null) {
                 isCarAvailable = false;
             }
-        }
+        } */
 
         return isCarAvailable;
+    }
+
+    protected List<Car> getAvailableCars(){
+        List<Car> carList = this.repository.findAll();
+        List<Car> availableCarList = new Vector<Car>();
+
+        for (Car car : carList) {
+            boolean isCarAvailable = this.checkForCarBooking(car);
+
+            if (isCarAvailable) {
+                availableCarList.add(car);
+            }
+        }
+
+        return availableCarList;
     }
 
     protected CarInfo convertCarToCarInfo(Car car) {

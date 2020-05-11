@@ -1,24 +1,29 @@
 package pacApp.pacModel;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.persistence.*;
 import java.util.Objects;
 
-@Entity
-@Table(name = "Car")
+//@Entity
+//@Table(name = "Car")
+@Document(collection = "cars")
 public class Car {
 
+    //@Id
+    //@GeneratedValue(strategy = GenerationType.AUTO)
+    //@Column(name = "CarID", updatable = false, nullable = false)
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "CarID", updatable = false, nullable = false)
     private long id;
 
-    @Column(name = "Type")
+    //@Column(name = "Type")
     private CarType type;
 
-    @Column(name = "Latitude")
+    //@Column(name = "Latitude")
     private Double latitude;
 
-    @Column(name = "Longitude")
+    //@Column(name = "Longitude")
     private Double longitude;
 
     public Car(){}
