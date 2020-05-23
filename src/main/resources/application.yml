@@ -1,15 +1,21 @@
 server:
-#  application:
-#    name: car-service
+  #application:
+    #name: car-service
   port: 4444 #443
   forward-headers-strategy: FRAMEWORK
 # register service registry (discovery server)
 eureka:
+  instance:
+    hostname: car-service.northeurope.azurecontainer.io
+    #prefer-ip-address: true
   client:
     registerWithEureka: true
     fetchRegistry: false
     serviceUrl:
-      defaultZone: http://user:password@localhost:1111/eureka
+      #defaultZone: http://user:password@localhost:1111/eureka
+      #defaultZone: http://localhost:1111/eureka
+      #defaultZone: http://user:password@carrental-registry.northeurope.azurecontainer.io:1111/eureka
+      defaultZone: https://carrental-registry.azurewebsites.net:443/eureka
     healthcheck:
       enabled: false
 logging:
@@ -47,4 +53,4 @@ soapWebservice:
   user: Admin
   password: pa$$w0rd
 allow:
-  origin: localhost
+  origin: "*"
