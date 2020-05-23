@@ -177,27 +177,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<plugin>
-				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.14.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<schemaLanguage>WSDL</schemaLanguage>
-					<generatePackage>com.consumingwebservice.wsdl</generatePackage>
-					<schemas>
-						<schema>
-							<url>https://currencyconverter.azurewebsites.net/Service.svc?wsdl</url>
-						</schema>
-					</schemas>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 
