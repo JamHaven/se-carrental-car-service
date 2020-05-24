@@ -26,6 +26,8 @@ public class Car {
     //@Column(name = "Longitude")
     private Double longitude;
 
+    private boolean isAvailable = true;
+
     public Car(){}
 
     public Car(long id, CarType type){
@@ -65,6 +67,14 @@ public class Car {
         this.longitude = longitude;
     }
 
+    public boolean isAvailable() {
+        return this.isAvailable;
+    }
+
+    public void setAvailable(boolean available) {
+        this.isAvailable = available;
+    }
+
     public boolean equalLocation(Car car) {
         return this.latitude == car.latitude && this.longitude == car.longitude;
     }
@@ -94,6 +104,6 @@ public class Car {
 
     @Override
     public String toString() {
-        return String.format("Car[id=%d, type='%s']",id, type.name());
+        return String.format("Car[id=%d, type='%s', isAvailable='%b']",id, type.name(), isAvailable);
     }
 }
