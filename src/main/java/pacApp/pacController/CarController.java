@@ -9,16 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.swagger.annotations.Api;
 import pacApp.pacData.CarRepository;
+import pacApp.pacData.RentalRepository;
+import pacApp.pacData.UserRepository;
 import pacApp.pacException.CarNotFoundException;
 import pacApp.pacLogic.Constants;
 import pacApp.pacModel.Car;
@@ -36,18 +32,18 @@ public class CarController extends BaseRestController {
     private static final Logger log = LoggerFactory.getLogger(CarController.class);
     private final CarRepository repository;
     private final RentalRepository rentalRepository;
-    private final UserRepository userRepository;
+    //private final UserRepository userRepository;
 
-    public CarController(CarRepository repository, RentalRepository rentalRepository, UserRepository userRepository){
+    public CarController(CarRepository repository, RentalRepository rentalRepository){
         this.repository = repository;
         this.rentalRepository = rentalRepository;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/cars")
-    public ResponseEntity getAllCars(){
+    public ResponseEntity getAllCars(@RequestParam("curr") Optional<String> currencyParam){
         String userEmail = super.getAuthentication().getName();
 
+        /*
         Optional<User> optUser = this.userRepository.findOneByEmail(userEmail);
 
         if (!optUser.isPresent()) {
@@ -55,23 +51,21 @@ public class CarController extends BaseRestController {
             return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
         }
 
-        User user = optUser.get();
+        User user = optUser.get(); */
 
-        List<Car> carList = this.repository.findAll();
+        List<Car> availableCarList = this.getAvailableCars();
+        List<CarInfo> carInfoList = this.convertCarsToCarInfos(availableCarList);
 
-        List<Car> availableCarList = new Vector<Car>();
+        //Currency userDefaultCurrency = user.getDefaultCurrency();
+        Currency userDefaultCurrency = Constants.SERVICE_CURRENCY;
 
-        for (Car car : carList) {
-            boolean isCarAvailable = this.checkForCarBooking(car);
-
-            if (isCarAvailable) {
-                availableCarList.add(car);
+        if (currencyParam.isPresent()) {
+            String currency = currencyParam.get().toUpperCase();
+            if (Currency.getCurrencyId(currency) != -1 ) {
+                userDefaultCurrency = Currency.valueOf(currency);
             }
         }
 
-        List<CarInfo> carInfoList = this.convertCarsToCarInfos(availableCarList);
-
-        Currency userDefaultCurrency = user.getDefaultCurrency();
         log.info(userDefaultCurrency.toString());
 
         if (userDefaultCurrency == Constants.SERVICE_CURRENCY) {
@@ -91,17 +85,8 @@ public class CarController extends BaseRestController {
     }
 
     @GetMapping("/cars/{id}")
-    public ResponseEntity getCar(@PathVariable Long id){
+    public ResponseEntity getCar(@PathVariable Long id, @RequestParam("curr") Optional<String> currencyParam){
         String userEmail = super.getAuthentication().getName();
-
-        Optional<User> optUser = this.userRepository.findOneByEmail(userEmail);
-
-        if (!optUser.isPresent()) {
-            GenericResponse response = new GenericResponse(HttpStatus.BAD_REQUEST.value(), "Invalid user");
-            return new ResponseEntity(response, HttpStatus.BAD_REQUEST);
-        }
-
-        User user = optUser.get();
 
         Optional<Car> optionalCar = this.repository.findById(id);
 
@@ -111,16 +96,25 @@ public class CarController extends BaseRestController {
 
         Car car = optionalCar.get();
 
-        boolean isCarAvailable = this.checkForCarBooking(car);
+        //boolean isCarAvailable = this.checkForCarBooking(car);
 
-        if (!isCarAvailable) {
+        if (!car.isAvailable()) {
             GenericResponse response = new GenericResponse(HttpStatus.FORBIDDEN.value(), "Car is not available");
             return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
 
         CarInfo carInfo = this.convertCarToCarInfo(car);
 
-        Currency userDefaultCurrency = user.getDefaultCurrency();
+        //Currency userDefaultCurrency = user.getDefaultCurrency();
+        Currency userDefaultCurrency = Constants.SERVICE_CURRENCY;
+
+        if (currencyParam.isPresent()) {
+            String currency = currencyParam.get().toUpperCase();
+            if (Currency.getCurrencyId(currency) != -1 ) {
+                userDefaultCurrency = Currency.valueOf(currency);
+            }
+        }
+
         log.info(userDefaultCurrency.toString());
 
         if (userDefaultCurrency == Constants.SERVICE_CURRENCY) {
@@ -136,20 +130,9 @@ public class CarController extends BaseRestController {
     public ResponseEntity saveCar(@RequestBody Car car){
         String userEmail = super.getAuthentication().getName();
 
-        Optional<User> optUser = this.userRepository.findOneByEmail(userEmail);
-
-        if (!optUser.isPresent()) {
-            GenericResponse response = new GenericResponse(HttpStatus.BAD_REQUEST.value(),"Invalid user");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-
-        User user = optUser.get();
-
         //TODO: implement user roles
 
-        long userId = user.getId();
-
-        if (userId != 1L) {
+        if (!userEmail.equals("admin@carrental.com")) {
             GenericResponse response = new GenericResponse(HttpStatus.FORBIDDEN.value(),"Request forbidden");
             return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
@@ -163,20 +146,9 @@ public class CarController extends BaseRestController {
     public ResponseEntity updateCar(@RequestBody Car newCar, @PathVariable Long id){
         String userEmail = super.getAuthentication().getName();
 
-        Optional<User> optUser = this.userRepository.findOneByEmail(userEmail);
-
-        if (!optUser.isPresent()) {
-            GenericResponse response = new GenericResponse(HttpStatus.BAD_REQUEST.value(),"Invalid user");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-
-        User user = optUser.get();
-
         //TODO: implement user roles
 
-        long userId = user.getId();
-
-        if (userId != 1L) {
+        if (!userEmail.equals("admin@carrental.com")) {
             GenericResponse response = new GenericResponse(HttpStatus.FORBIDDEN.value(),"Request forbidden");
             return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
@@ -205,20 +177,9 @@ public class CarController extends BaseRestController {
     public ResponseEntity deleteCar(@PathVariable Long id){
         String userEmail = super.getAuthentication().getName();
 
-        Optional<User> optUser = this.userRepository.findOneByEmail(userEmail);
-
-        if (!optUser.isPresent()) {
-            GenericResponse response = new GenericResponse(HttpStatus.BAD_REQUEST.value(),"Invalid user");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }
-
-        User user = optUser.get();
-
         //TODO: implement user roles
 
-        long userId = user.getId();
-
-        if (userId != 1L) {
+        if (!userEmail.equals("admin@carrental.com")) {
             GenericResponse response = new GenericResponse(HttpStatus.FORBIDDEN.value(),"Request forbidden");
             return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
         }
@@ -237,6 +198,8 @@ public class CarController extends BaseRestController {
     }
 
     protected boolean checkForCarBooking(Car car) {
+        return car.isAvailable();
+        /*
         List<Rental> rentalsForCar = this.rentalRepository.findByCar(car);
         boolean isCarAvailable = true;
 
@@ -247,6 +210,22 @@ public class CarController extends BaseRestController {
         }
 
         return isCarAvailable;
+        */
+    }
+
+    protected List<Car> getAvailableCars(){
+        List<Car> carList = this.repository.findAll();
+        List<Car> availableCarList = new Vector<Car>();
+
+        for (Car car : carList) {
+            //boolean isCarAvailable = this.checkForCarBooking(car);
+
+            if (car.isAvailable()) {
+                availableCarList.add(car);
+            }
+        }
+
+        return availableCarList;
     }
 
     protected CarInfo convertCarToCarInfo(Car car) {

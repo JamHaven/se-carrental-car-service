@@ -10,7 +10,7 @@ import java.util.Vector;
 
 public class CarRepositoryImpl implements CarRepositoryExtension {
 
-    private static final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(CarRepository.class);
     @Autowired
     CarRepository repository;
 

@@ -1,25 +1,32 @@
 package pacApp.pacModel;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.persistence.*;
 import java.util.Objects;
 
-@Entity
-@Table(name = "Car")
+//@Entity
+//@Table(name = "Car")
+@Document(collection = "cars")
 public class Car {
 
+    //@Id
+    //@GeneratedValue(strategy = GenerationType.AUTO)
+    //@Column(name = "CarID", updatable = false, nullable = false)
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "CarID", updatable = false, nullable = false)
     private long id;
 
-    @Column(name = "Type")
+    //@Column(name = "Type")
     private CarType type;
 
-    @Column(name = "Latitude")
+    //@Column(name = "Latitude")
     private Double latitude;
 
-    @Column(name = "Longitude")
+    //@Column(name = "Longitude")
     private Double longitude;
+
+    private boolean isAvailable = true;
 
     public Car(){}
 
@@ -60,6 +67,14 @@ public class Car {
         this.longitude = longitude;
     }
 
+    public boolean isAvailable() {
+        return this.isAvailable;
+    }
+
+    public void setAvailable(boolean available) {
+        this.isAvailable = available;
+    }
+
     public boolean equalLocation(Car car) {
         return this.latitude == car.latitude && this.longitude == car.longitude;
     }
@@ -89,6 +104,6 @@ public class Car {
 
     @Override
     public String toString() {
-        return String.format("Car[id=%d, type='%s']",id, type.name());
+        return String.format("Car[id=%d, type='%s', isAvailable='%b']",id, type.name(), isAvailable);
     }
 }

@@ -8,10 +8,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pacApp.pacSoapConnector.SoapConvertCurrencyConnector;
 
-
 @EnableDiscoveryClient
 @SpringBootApplication
-public class WebServerMachine {
+public class CarServiceApplication {
 
 	@Bean
 	public PasswordEncoder getPasswordEncoder(){
@@ -19,7 +18,7 @@ public class WebServerMachine {
 	}
 
 	public static void main(String... args) {
-		SpringApplication.run(WebServerMachine.class, args);
+		SpringApplication.run(CarServiceApplication.class, args);
 		new SoapConvertCurrencyConnector().getCurrencyCodesResponse();
 		new SoapConvertCurrencyConnector().convertCurrency(3.00F, "USD", "EUR");
 	}
